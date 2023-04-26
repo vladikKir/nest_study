@@ -9,4 +9,7 @@ export class CreateUserDto {
 
   @IsNumber()
   readonly age: number;
+
+  @IsString({ each: true })
+  readonly skills: string[];
 }

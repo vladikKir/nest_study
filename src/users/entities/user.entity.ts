@@ -1,5 +1,5 @@
 import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { JoinTable } from 'typeorm/browser';
+import { JoinTable } from 'typeorm';
 import { Skill } from './skills.entity/skills.entity';
 
 @Entity()
@@ -17,6 +17,6 @@ export class User {
   age: number;
 
   @JoinTable()
-  @ManyToMany((type) => Skill, (skill) => skill.users)
-  skills: string[];
+  @ManyToMany((type) => Skill, (skill) => skill.users, { cascade: true })
+  skills: Skill[];
 }
