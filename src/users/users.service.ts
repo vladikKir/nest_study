@@ -4,56 +4,50 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [
-    {
-      id: 1,
-      first_name: 'Vladislav',
-      last_name: 'Kiriliuk',
-      age: 24,
-    },
-  ];
+  constructor(
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
+  ) {}
+
   create(createUserDto: any) {
-    this.users = [...this.users, createUserDto];
-    return createUserDto;
+    const user = this.userRepository.create(createUserDto);
+    return this.userRepository.save(user);
   }
 
   findAll() {
-    return this.users;
+    return this.userRepository.find();
   }
 
   findOne(id: number) {
-    const user = this.users.find((value: User) => value.id === id);
+    const user = this.userRepository.findOneBy({ id: id });
     if (!user) {
       throw new NotFoundException(`User with id #${id} not found`);
     }
     return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    let user: User;
-    const updatedUsers = this.users.map((value: User) => {
-      if (value.id === id) {
-        const updatedValue = { ...value, ...updateUserDto };
-        user = updatedValue;
-        return updatedValue;
-      }
-      return value;
-    });
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const user = await this.userRepository.findOneBy({ id: id });
 
-    this.users = updatedUsers;
-    return user;
+    if (!user) {
+      throw new NotFoundException(`User with id #${id} not found`);
+      return;
+    }
+
+    Object.keys(updateUserDto).forEach(
+      (key) => (user[key] = updateUserDto[key]),
+    );
+
+    return this.userRepository.save(user);
   }
 
   remove(id: number) {
-    const filteredUsers = this.users.filter((user: User) => user.id !== id);
-
-    this.users = filteredUsers;
-    return this.users;
+    this.userRepository.delete(id);
   }
 }
